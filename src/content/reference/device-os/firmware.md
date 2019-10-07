@@ -986,25 +986,6 @@ void setup() {
 {{#if has-mesh}}
 ## Mesh
 
-### Antenna selection
-
-At the time of writing (Device OS 0.8.0-rc.27), mesh antenna selection is not yet supported. Only the internal mesh antenna can be used at this time. However, you can use this function to select the external mesh antenna. The setting is not saved and the default is internal.
-
-```
-void selectExternalMeshAntenna() {
-
-#if (PLATFORM_ID == PLATFORM_ARGON)
-    digitalWrite(ANTSW1, 1);
-    digitalWrite(ANTSW2, 0);
-#elif (PLATFORM_ID == PLATFORM_BORON)
-    digitalWrite(ANTSW1, 0);
-#else
-    digitalWrite(ANTSW1, 0);
-    digitalWrite(ANTSW2, 1);
-#endif
-}
-```
-
 ### publish()
 
 On Mesh devices, there are two publish options: Particle.publish and Mesh.publish:
@@ -1191,6 +1172,37 @@ void setup() {
 void setup() {
   Serial.begin();
   Serial.printlnf("localIP: %s", Mesh.localIP().toString().c_str());
+}
+```
+
+### selectAntenna()
+
+{{since when="1.5.0"}}
+
+Selects which antenna is used by the mesh radio stack. This is a persistent setting.
+
+**Note:** On Gen 3 devices (Argon, Boron, Xenon), the mesh and BLE radio stacks share the same antenna and changing the antenna via `Mesh.selectAntenna()` also changes the antenna used by the BLE stack. SoM devices do not have an internal antenna.
+
+```cpp
+// Select the internal antenna
+Mesh.selectAntenna(MeshAntennaType::INTERNAL);
+// Select the external antenna
+Mesh.selectAntenna(MeshAntennaType::EXTERNAL);
+```
+
+The following function can be used to select the external antenna in older versions of Device OS. Note that, in this case, the setting is not saved, and the Device OS will select the default internal antenna after a reset.
+
+```cpp
+void selectExternalMeshAntenna() {
+#if (PLATFORM_ID == PLATFORM_ARGON)
+    digitalWrite(ANTSW1, 1);
+    digitalWrite(ANTSW2, 0);
+#elif (PLATFORM_ID == PLATFORM_BORON)
+    digitalWrite(ANTSW1, 0);
+#elif (PLATFORM_ID == PLATFORM_XENON)
+    digitalWrite(ANTSW1, 0);
+    digitalWrite(ANTSW2, 1);
+#endif
 }
 ```
 {{/if}}
@@ -7596,7 +7608,7 @@ BLE is intended for low data rate sensor applications. Particle devices do not s
 
 The mesh networking in Gen 3 devices is Thread Mesh (6LoWPAN over 802.15.4). While it uses the same 2.4 GHz radio spectrum as Bluetooth 5 mesh, they are different and not compatible. Particle devices do not support Bluetooth 5 mesh.
 
-The BLE protocol shares the same antenna as the mesh radio, and can use the built-in chip or trace antenna, or an external antenna if you have installed and configured one. 
+The BLE protocol shares the same antenna as the mesh radio, and can use the built-in chip or trace antenna, or an external antenna if you have installed and [configured](#ble-selectantenna-) one.
 
 The B Series  SoM (system-on-a-module) requires the external BLE/Mesh antenna connected to the **BT** connector. The SoMs do not have built-in antennas.
 
@@ -8347,6 +8359,21 @@ const BleAddress address() const;
 ```
 
 See [`BleAddress`](/reference/device-os/firmware/#bleaddress) for more information.
+
+#### BLE.selectAntenna()
+
+{{since when="1.3.1"}}
+
+Selects which antenna is used by the BLE radio stack. This is a persistent setting.
+
+**Note:** On Gen 3 devices (Argon, Boron, Xenon), the mesh and BLE radio stacks share the same antenna and changing the antenna via `BLE.selectAntenna()` also changes the antenna used by the mesh stack. SoM devices do not have an internal antenna.
+
+```cpp
+// Select the internal antenna
+BLE.selectAntenna(BleAntennaType::INTERNAL);
+// Select the external antenna
+BLE.selectAntenna(BleAntennaType::EXTERNAL);
+```
 
 ### BLE Services
 
